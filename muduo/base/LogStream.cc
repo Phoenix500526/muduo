@@ -43,6 +43,7 @@ const char digitsHex[] = "0123456789ABCDEF";
 static_assert(sizeof digitsHex == 17, "wrong number of digitsHex");
 
 // Efficient Integer to String Conversions, by Matthew Wilson.
+// C++ 11标准指明了对负数取余数时，商向 0 取整
 template<typename T>
 size_t convert(char buf[], T value)
 {
@@ -84,6 +85,7 @@ size_t convertHex(char buf[], uintptr_t value)
   return p - buf;
 }
 
+// 实现文件中具现化模板，避免用户任意具现化
 template class FixedBuffer<kSmallBuffer>;
 template class FixedBuffer<kLargeBuffer>;
 

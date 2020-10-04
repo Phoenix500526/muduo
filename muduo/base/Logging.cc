@@ -35,15 +35,18 @@ class LoggerImpl
 };
 */
 
+//__thread 为 GCC 内置的线程局部存储设施。__thread变量在每个线程中都有一份独立实体，各个线程中的变量值互不干扰。
 __thread char t_errnobuf[512];
 __thread char t_time[64];
 __thread time_t t_lastSecond;
 
+//strerror_tl 对 strerror_r 做了一层简单的封装，保证了易用性的同时兼顾了线程安全(strerror_r 是线程安全的)
 const char* strerror_tl(int savedErrno)
 {
   return strerror_r(savedErrno, t_errnobuf, sizeof t_errnobuf);
 }
 
+//利用环境变量初始化日志打印信息，这样部署到生产环境和开发环境时能够自动适应，无需调整。
 Logger::LogLevel initLogLevel()
 {
   if (::getenv("MUDUO_LOG_TRACE"))
@@ -97,6 +100,7 @@ void defaultOutput(const char* msg, int len)
 {
   size_t n = fwrite(msg, 1, len, stdout);
   //FIXME check n
+  // 在 DEBUG 模式下，可以利用 assert 对 n 进行检测。由于在 Release 模式下，assert 会被移除，因此需要利用 (void)n 来消除警告
   (void)n;
 }
 

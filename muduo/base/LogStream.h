@@ -21,10 +21,17 @@ namespace detail
 const int kSmallBuffer = 4000;
 const int kLargeBuffer = 4000*1000;
 
+//FixedBuffer 固定长度的缓冲区，分为 4KB 和 4MB 两种规格
+//此处采用类模板的声明与实现相分离的方式，这主要是为了将FixedBuffer 的大小限制在 4KB 和 4MB 
+//由于模板中部分函数的定义和声明相分离，因此当用户自行具现化模板时会产生链接错误(ld 错误)。
+//另外这种做法并不会减少代码膨胀，因为分离至实现文件中函数最终会被因编译器优化而内联
 template<int SIZE>
 class FixedBuffer : noncopyable
 {
  public:
+  //cookies 是一个函数指针，它指向了两个没有任何功能的函数 cookieStart 和 cookiesEnd，这两个函数
+  //相当于页眉和页脚，当程序崩溃时，可以利用 gdb 把 cookieStart 的值打印出来，并在 core dump 文件
+  //中搜查对应的地址。这样就可以找到崩溃后遗留在内存中尚未刷到文件中的日志信息
   FixedBuffer()
     : cur_(data_)
   {
@@ -77,6 +84,7 @@ class FixedBuffer : noncopyable
 
 }  // namespace detail
 
+//处于性能及线程安全考虑，muduo 封装了一个自用流
 class LogStream : noncopyable
 {
   typedef LogStream self;
@@ -168,6 +176,8 @@ class LogStream : noncopyable
   static const int kMaxNumericSize = 32;
 };
 
+//muduo 的日志打印采用流式风格，为了解决格式化打印的需求，可以引入一层间接性
+//在 Fmt 中对字符串进行格式化，并重载 << 运算符来解决格式的输出问题，使用起来更加方便(设了格式之后不用再设回去)
 class Fmt // : noncopyable
 {
  public:

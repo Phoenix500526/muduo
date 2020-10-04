@@ -17,6 +17,7 @@ class TimeZone;
 class Logger
 {
  public:
+  //NUM_LOG_LEVELS 可以用于标记日志级别的数量
   enum LogLevel
   {
     TRACE,
@@ -29,14 +30,17 @@ class Logger
   };
 
   // compile time calculation of basename of source file
+  //内部类实现
   class SourceFile
   {
    public:
+    //利用模板的非类型参数，可以实现在编译期动态设定数组长度
     template<int N>
     SourceFile(const char (&arr)[N])
       : data_(arr),
         size_(N-1)
     {
+      //从字符串末尾向前找到倒数第一个 / 字符，/ 字符后面就是
       const char* slash = strrchr(data_, '/'); // builtin function
       if (slash)
       {
@@ -121,6 +125,8 @@ inline Logger::LogLevel Logger::logLevel()
 //   else
 //     logWarnStream << "Bad news";
 //
+//LOG_TRACE 使用匿名对象来实现线程安全的，每个对象都位于栈上空间，用完即弃，不与其他线程共享，因此不会引发线程安全问题
+//避免日志前端上锁影响调用者本身的执行效率
 #define LOG_TRACE if (muduo::Logger::logLevel() <= muduo::Logger::TRACE) \
   muduo::Logger(__FILE__, __LINE__, muduo::Logger::TRACE, __func__).stream()
 #define LOG_DEBUG if (muduo::Logger::logLevel() <= muduo::Logger::DEBUG) \
@@ -140,6 +146,7 @@ const char* strerror_tl(int savedErrno);
 // Check that the input is non NULL.  This very useful in constructor
 // initializer lists.
 
+// CHECK_NOTNULL 宏的作用与 assert 相同，但优点是不会受到 NDEBUG 模式的影响。即使在 Release 版本中也是有效的，有利于及早发现错误
 #define CHECK_NOTNULL(val) \
   ::muduo::CheckNotNull(__FILE__, __LINE__, "'" #val "' Must be non NULL", (val))
 

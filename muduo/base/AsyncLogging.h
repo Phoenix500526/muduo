@@ -43,7 +43,7 @@ class AsyncLogging : noncopyable
     thread_.start();
     latch_.wait();
   }
-
+  //对 stop 函数禁用 clang 的 TSA 功能
   void stop() NO_THREAD_SAFETY_ANALYSIS
   {
     running_ = false;
@@ -66,6 +66,7 @@ class AsyncLogging : noncopyable
   muduo::Thread thread_;
   muduo::CountDownLatch latch_;
   muduo::MutexLock mutex_;
+  //GUARDED_BY 是宏定义，主要用于启动 clang 的 TSA 功能
   muduo::Condition cond_ GUARDED_BY(mutex_);
   BufferPtr currentBuffer_ GUARDED_BY(mutex_);
   BufferPtr nextBuffer_ GUARDED_BY(mutex_);

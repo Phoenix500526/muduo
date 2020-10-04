@@ -90,6 +90,7 @@ void LogFile::append_unlocked(const char* logline, int len)
   }
 }
 
+//文件滚动函数：当日志文件超过一定大小时滚动文件
 bool LogFile::rollFile()
 {
   time_t now = 0;

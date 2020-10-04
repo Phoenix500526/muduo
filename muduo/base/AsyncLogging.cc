@@ -80,6 +80,8 @@ void AsyncLogging::threadFunc()
       }
       buffers_.push_back(std::move(currentBuffer_));
       currentBuffer_ = std::move(newBuffer1);
+      //采用 swap 的方式，将数据移至局部对象 buffersToWrite 中，这样在处理的时候不会产生竞态
+      //问题，而且缩短了临界区。这同样也是为了避免日志前端的等待
       buffersToWrite.swap(buffers_);
       if (!nextBuffer_)
       {
